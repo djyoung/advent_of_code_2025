@@ -2,7 +2,7 @@ use std::fs;
 
 const PUZZLE_INPUT_PATH: &str = "input/day_2";
 
-type Range = (i64, i64);
+type Range = (usize, usize);
 
 pub fn run() {
     println!("day 2:");
@@ -24,12 +24,12 @@ fn parse_ranges(input: &str) -> Vec<Range> {
         .collect()
 }
 
-fn part_1(ranges: &[Range]) -> i64 {
+fn part_1(ranges: &[Range]) -> usize {
     let mut sum = 0;
 
     for &(start, end) in ranges {
         for id in start..=end {
-            if is_symmetric_id(id) {
+            if is_symmetric(id) {
                 sum += id;
             }
         }
@@ -38,7 +38,7 @@ fn part_1(ranges: &[Range]) -> i64 {
     sum
 }
 
-fn is_symmetric_id(id: i64) -> bool {
+fn is_symmetric(id: usize) -> bool {
     let id_str = id.to_string();
     let len = id_str.len();
 
@@ -51,7 +51,7 @@ fn is_symmetric_id(id: i64) -> bool {
     first == second
 }
 
-fn part_2(ranges: &[Range]) -> i64 {
+fn part_2(ranges: &[Range]) -> usize {
     let mut sum = 0;
 
     for &(start, end) in ranges {
@@ -65,30 +65,28 @@ fn part_2(ranges: &[Range]) -> i64 {
     sum
 }
 
-fn has_repeating_pattern(id: i64) -> bool {
+fn has_repeating_pattern(id: usize) -> bool {
     let id_str = id.to_string();
     let len = id_str.len();
 
-    for i in 0..len / 2 {
-        let prefix = &id_str[0..=i];
-        let prefix_len = prefix.len();
-
-        let mut index = i + 1;
-        let mut found_repeating_pattern = true;
-
-        while index + prefix_len <= len {
-            let window = &id_str[index..index + prefix_len];
-            let window_len = window.len();
-
-            if window_len.is_multiple_of(len) || prefix != window {
-                found_repeating_pattern = false;
-                break;
-            }
-
-            index += prefix_len;
+    for i in 1..=len / 2 {
+        if len % i != 0 {
+            continue;
         }
 
-        if found_repeating_pattern && len.is_multiple_of(prefix_len) {
+        let pattern = &id_str[..i];
+        let mut matched = true;
+
+        for j in (i..len).step_by(i) {
+            let window = &id_str[j..j + i];
+
+            if window != pattern {
+                matched = false;
+                break;
+            }
+        }
+
+        if matched {
             return true;
         }
     }
