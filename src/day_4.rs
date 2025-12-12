@@ -9,6 +9,7 @@ pub fn run() {
     let layout = parse_layout(&input);
 
     println!("part 1: {}", part_1(&layout));
+    println!("part 2: {}", part_2(&layout));
 }
 
 fn parse_layout(input: &str) -> Vec<Vec<usize>> {
@@ -43,6 +44,36 @@ fn part_1(layout: &Vec<Vec<usize>>) -> usize {
             if count_neighbors(layout, i, j) < 4 {
                 res += 1;
             }
+        }
+    }
+
+    res
+}
+
+fn part_2(layout: &Vec<Vec<usize>>) -> usize {
+    let mut res = 0;
+
+    let mut layout = layout.clone();
+
+    loop {
+        let mut roll_removed = false;
+
+        for i in 0..layout.len() {
+            for j in 0..layout[i].len() {
+                if layout[i][j] == 0 {
+                    continue;
+                }
+
+                if count_neighbors(&layout, i, j) < 4 {
+                    res += 1;
+                    layout[i][j] = 0;
+                    roll_removed = true;
+                }
+            }
+        }
+
+        if !roll_removed {
+            break;
         }
     }
 
