@@ -13,66 +13,43 @@ pub fn run() {
 }
 
 fn parse_layout(input: &str) -> Vec<Vec<usize>> {
-    let mut layout = Vec::new();
+    input
+        .lines()
+        .map(|line| line.chars().map(|c| if c == '.' { 0 } else { 1 }).collect())
+        .collect()
+}
 
-    for line in input.lines() {
-        let mut rolls = Vec::new();
-
-        for char in line.chars() {
-            if char == '.' {
-                rolls.push(0);
-            } else {
-                rolls.push(1);
-            }
-        }
-
-        layout.push(rolls);
-    }
-
+fn part_1(layout: &[Vec<usize>]) -> usize {
     layout
+        .iter()
+        .enumerate()
+        .map(|(i, row)| {
+            row.iter()
+                .enumerate()
+                .filter(|&(j, &cell)| cell != 0 && count_neighbors(layout, i, j) < 4)
+                .count()
+        })
+        .sum()
 }
 
-fn part_1(layout: &Vec<Vec<usize>>) -> usize {
+fn part_2(layout: &[Vec<usize>]) -> usize {
+    let mut layout = layout.to_vec();
     let mut res = 0;
-
-    for i in 0..layout.len() {
-        for j in 0..layout[i].len() {
-            if layout[i][j] == 0 {
-                continue;
-            }
-
-            if count_neighbors(layout, i, j) < 4 {
-                res += 1;
-            }
-        }
-    }
-
-    res
-}
-
-fn part_2(layout: &Vec<Vec<usize>>) -> usize {
-    let mut res = 0;
-
-    let mut layout = layout.clone();
 
     loop {
-        let mut roll_removed = false;
+        let mut changed = false;
 
         for i in 0..layout.len() {
             for j in 0..layout[i].len() {
-                if layout[i][j] == 0 {
-                    continue;
-                }
-
-                if count_neighbors(&layout, i, j) < 4 {
+                if layout[i][j] != 0 && count_neighbors(&layout, i, j) < 4 {
                     res += 1;
                     layout[i][j] = 0;
-                    roll_removed = true;
+                    changed = true;
                 }
             }
         }
 
-        if !roll_removed {
+        if !changed {
             break;
         }
     }
@@ -80,10 +57,8 @@ fn part_2(layout: &Vec<Vec<usize>>) -> usize {
     res
 }
 
-fn count_neighbors(layout: &Vec<Vec<usize>>, i: usize, j: usize) -> usize {
-    let mut count = 0;
-
-    let directions = [
+fn count_neighbors(layout: &[Vec<usize>], i: usize, j: usize) -> usize {
+    const DIRECTIONS: [(isize, isize); 8] = [
         (-1, -1),
         (-1, 0),
         (-1, 1),
@@ -94,14 +69,12 @@ fn count_neighbors(layout: &Vec<Vec<usize>>, i: usize, j: usize) -> usize {
         (1, 1),
     ];
 
-    for (di, dj) in directions {
-        let di = i as isize + di;
-        let dj = j as isize + dj;
-
-        if di >= 0 && di < layout.len() as isize && dj >= 0 && dj < layout[i].len() as isize {
-            count += layout[di as usize][dj as usize]
-        }
-    }
-
-    count
+    DIRECTIONS
+        .iter()
+        .filter_map(|&(di, dj)| {
+            layout
+                .get(i.checked_add_signed(di)?)?
+                .get(j.checked_add_signed(dj)?)
+        })
+        .sum()
 }
